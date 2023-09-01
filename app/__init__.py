@@ -4,6 +4,7 @@ from dotenv import dotenv_values
 from .extensions import db, jwt, bcrypt, migrate
 from flask_jwt_extended.exceptions import NoAuthorizationError, InvalidHeaderError, JWTDecodeError
 
+
 def create_app():
     app = Flask(__name__)
 
@@ -49,5 +50,3 @@ def create_app():
         return jsonify(error=str(e)), 400
 
     return app
-
-
