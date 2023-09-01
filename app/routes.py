@@ -6,6 +6,7 @@ import openai
 import openai.error
 from datetime import datetime
 
+
 def error_response(status_code, message):
     response = {
         "success": False,
@@ -16,11 +17,13 @@ def error_response(status_code, message):
     }
     return jsonify(response), status_code
 
+
 main_blueprint = Blueprint('main', __name__)
+
 
 @main_blueprint.route("/generate_plan", methods=["POST"])
 def generate_plan():
-    
+
     try:
         data = request.get_json()
 
@@ -38,7 +41,7 @@ def generate_plan():
         days_per_week = data["days_per_week"]
         dietary_restrictions = data["dietary_restrictions"]
 
-        # Construct the prompt
+        # PROMPT for gpt-3.5-turbo
         prompt = (f"I need a fitness plan and diet plan for someone who is {age} years old, weighs {weight} lbs, "
                   f"is {feet} feet {inches} inches tall, and wants to workout {days_per_week} days a week "
                   f"with the goal of '{goals}'. Please do not include an active rest day or any rest day. Please provide:\n\n"
@@ -64,7 +67,7 @@ def generate_plan():
 
         return jsonify({"user_id": user_id, "plan": plan})
 
-    # OpenAI Errors:
+    # OpenAI Error Handling:
     except openai.error.RateLimitError:
         return error_response(429, "Rate limit exceeded, please try again later.")
 
@@ -74,7 +77,6 @@ def generate_plan():
     except openai.error.InvalidRequestError as e:
         return error_response(400, f"Invalid request to OpenAI: {str(e)}")
 
-    # More generic error catches:
     except openai.error.OpenAIError as e:
         return error_response(500, f"OpenAI Error: {str(e)}")
 
@@ -111,9 +113,9 @@ def create_user():
         return error_response(400, "Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, and a digit")
 
     # Check if the username or email already exists
-    if User.query.filter_by(username=username, is_deleted=False).first():
+    if User.query.filter_by(username=username).first():
         return error_response(400, "Username already exists!")
-    if User.query.filter_by(email=email, is_deleted=False).first():
+    if User.query.filter_by(email=email).first():
         return error_response(400, "Email already exists!")
 
     new_user = User(
@@ -182,19 +184,22 @@ def update_user(user_id):
     # Validate if the new username or email is not already taken by another user
     new_username = data.get("username")
     if new_username and new_username != user.username:
-        existing_user = User.query.filter_by(username=new_username, is_deleted=False).first()
+        existing_user = User.query.filter_by(username=new_username).first()
         if existing_user:
             return error_response(400, "Username already exists!")
 
     new_email = data.get("email")
     if new_email and new_email != user.email:
-        existing_user = User.query.filter_by(email=new_email, is_deleted=False).first()
+        existing_user = User.query.filter_by(email=new_email).first()
         if existing_user:
             return error_response(400, "Email already exists!")
 
     # If validation passes, update the other fields
-    user.username = new_username
-    user.email = new_email
+    if new_username:
+        user.username = new_username
+    if new_email:
+        user.email = new_email
+
     user.age = data.get("age", user.age)
     user.weight = data.get("weight", user.weight)
     user.feet = data.get("feet", user.feet)
@@ -207,35 +212,19 @@ def update_user(user_id):
     db.session.commit()
     return jsonify({"message": "User updated successfully!"})
 
+
 # Users DELETE Route
 @main_blueprint.route("/users/<int:user_id>", methods=["DELETE"])
 @jwt_required()
 def delete_user(user_id):
-    # Get the authenticated user's ID from the JWT token and ensure it's an integer
     authenticated_user_id = int(get_jwt_identity())
-
-    # Ensure that the authenticated user is deleting their own profile
     if user_id != authenticated_user_id:
         return error_response(403, "Unauthorized action!")
 
     user = User.query.get_or_404(user_id)
     db.session.delete(user)
-    user.is_deleted = True
-    user.deleted_at = datetime.utcnow()
     db.session.commit()
     return jsonify({"message": "User deleted successfully!"})
-
-# Restore User
-@main_blueprint.route("/restore_user/<int:user_id>", methods=["PUT"])
-@jwt_required()
-def restore_user(user_id):
-    user = User.query.get_or_404(user_id)
-    user.is_deleted = False
-    user.deleted_at = None
-
-    db.session.commit()
-    return jsonify({"message": "User restored successfully!"})
-
 
 # Users LOGIN Route
 @main_blueprint.route('/login', methods=['POST'])
@@ -288,7 +277,7 @@ def get_user_plans():
 
         # Fetch all plans for the user that are not soft-deleted
         plans = SavedPlan.query.filter_by(
-            user_id=user_id, is_deleted=False).all()
+            user_id=user_id).all()
 
         # Serialize the plans for JSON response
         plans_list = [{
@@ -301,5 +290,3 @@ def get_user_plans():
 
     except Exception as e:
         return error_response(500, str(e))
-
-
