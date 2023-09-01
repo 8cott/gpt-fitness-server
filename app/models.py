@@ -1,14 +1,12 @@
-# models.py
-from . import db
-from werkzeug.security import generate_password_hash, check_password_hash
+from .extensions import db, bcrypt
+from sqlalchemy import or_
 
 # User Model
 class User(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(255), unique=True, nullable=False)
-    _password = db.Column("password", db.String(255), nullable=False)
-    email = db.Column(db.String(255), unique=True, nullable=False)
+    username = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     age = db.Column(db.Integer)
     weight = db.Column(db.Float)
     feet = db.Column(db.Integer)
@@ -18,16 +16,21 @@ class User(db.Model):
     dietary_restrictions = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
-    # Methods to handle hashtagging
+    # Password Hashing
+    password_hash = db.Column(db.String(128))
+
     def set_password(self, password):
-        self._password = generate_password_hash(password)
+        self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
 
     def check_password(self, password):
-        return check_password_hash(self._password, password)
+        return bcrypt.check_password_hash(self.password_hash, password)
+    
+    @classmethod
+    def username_or_email_exists(cls, username, email):
+        return db.session.query(cls).filter(or_(cls.username == username, cls.email == email)).first() is not None
+
 
 # Saved Plans Model
-# models.py
-
 class SavedPlan(db.Model):
     __tablename__ = "saved_plans"
     id = db.Column(db.Integer, primary_key=True)
