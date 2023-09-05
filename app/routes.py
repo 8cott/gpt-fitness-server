@@ -27,13 +27,14 @@ def generate_plan():
     try:
         data = request.get_json()
 
-        required_keys = ["user_id", "age", "weight", "feet",
+        required_keys = ["user_id", "age", "sex", "weight", "feet",
                          "inches", "goals", "days_per_week", "dietary_restrictions"]
         if not all(key in data for key in required_keys):
             return error_response(400, "Missing fields!")
 
         user_id = data["user_id"]
         age = data["age"]
+        sex = data["sex"]
         weight = data["weight"]
         feet = data["feet"]
         inches = data["inches"]
@@ -42,7 +43,7 @@ def generate_plan():
         dietary_restrictions = data["dietary_restrictions"]
 
         # PROMPT for gpt-3.5-turbo
-        prompt = (f"I need a fitness plan and diet plan for someone who is {age} years old, weighs {weight} lbs, "
+        prompt = (f"I need a fitness plan and diet plan for someone who is {age} year old {sex}, who weighs {weight} lbs, "
                   f"is {feet} feet {inches} inches tall, and wants to workout {days_per_week} days a week "
                   f"with the goal of '{goals}'. Please do not include an active rest day or any rest day. Please provide:\n\n"
                   "1. Workout Routine\n"
@@ -122,6 +123,7 @@ def create_user():
         username=data["username"],
         email=data["email"],
         age=data.get("age"),
+        sex=data.get("sex"),
         weight=data.get("weight"),
         feet=data.get("feet"),
         inches=data.get("inches"),
@@ -146,6 +148,7 @@ def get_user(user_id):
         "username": user.username,
         "email": user.email,
         "age": user.age,
+        "sex": user.sex,
         "weight": user.weight,
         "feet": user.feet,
         "inches": user.inches,
@@ -201,6 +204,7 @@ def update_user(user_id):
         user.email = new_email
 
     user.age = data.get("age", user.age)
+    user.sex = data.get("sex", user.sex)
     user.weight = data.get("weight", user.weight)
     user.feet = data.get("feet", user.feet)
     user.inches = data.get("inches", user.inches)

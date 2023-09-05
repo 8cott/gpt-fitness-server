@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/Users/scottrubin/Coding/projects/gpt-fitness/venv"
+VIRTUAL_ENV="/Users/scottrubin/Coding/projects/gpt-fitness-server/venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

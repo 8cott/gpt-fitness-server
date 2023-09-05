@@ -1,4 +1,4 @@
-#!/Users/scottrubin/Coding/projects/gpt-fitness/venv/bin/python3.11
+#!/Users/scottrubin/Coding/projects/gpt-fitness-server/venv/bin/python3.11
 # -*- coding: utf-8 -*-
 import re
 import sys

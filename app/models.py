@@ -8,6 +8,7 @@ class User(db.Model):
     username = db.Column(db.String(255), unique=True, nullable=False, index=True)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     age = db.Column(db.Integer)
+    sex = db.Column(db.String(255))
     weight = db.Column(db.Float)
     feet = db.Column(db.Integer)
     inches = db.Column(db.Integer)
