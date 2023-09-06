@@ -85,6 +85,8 @@ def generate_plan():
         return error_response(500, str(e))
 
 # Save Plan POST Route
+
+
 @main_blueprint.route("/save_plan", methods=["POST"])
 @jwt_required()
 def save_plan():
@@ -109,6 +111,8 @@ def save_plan():
         return error_response(500, str(e))
 
 # Delete Saved Plan Route
+
+
 @main_blueprint.route("/plans/<int:plan_id>", methods=["DELETE"])
 @jwt_required()
 def delete_plan(plan_id):
@@ -131,6 +135,8 @@ def delete_plan(plan_id):
         return error_response(500, str(e))
 
 # Validate Password
+
+
 def is_valid_password(password):
     # Ensure password has at least 8 characters
     if len(password) < 8:
@@ -143,6 +149,8 @@ def is_valid_password(password):
     return True
 
 # Users POST Route
+
+
 @main_blueprint.route("/users", methods=["POST"])
 def signup():
     data = request.get_json()
@@ -204,6 +212,8 @@ def get_user(user_id):
     })
 
 # Update User Route
+
+
 @main_blueprint.route("/users/<int:user_id>", methods=["PUT"])
 @jwt_required()
 def update_user(user_id):
@@ -263,6 +273,8 @@ def update_user(user_id):
     return jsonify({"message": "User updated successfully!"})
 
 # Users DELETE Route
+
+
 @main_blueprint.route("/users/<int:user_id>", methods=["DELETE"])
 @jwt_required()
 def delete_user(user_id):
@@ -276,21 +288,28 @@ def delete_user(user_id):
     return jsonify({"message": "User deleted successfully!"})
 
 # Users LOGIN Route
+
+
 @main_blueprint.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
 
-    username = data.get('username')
+    email = data.get('email')
     password = data.get('password')
 
     # Check for missing fields
-    if not all([username, password]):
+    if not all([email, password]):
         return error_response(400, "Missing fields!")
-    user = User.query.filter_by(username=data['username']).first()
-    if user and user.check_password(data['password']):
+
+    user = User.query.filter_by(email=email).first()
+
+    if user and user.check_password(password):
         access_token = create_access_token(identity=user.id)
-        return jsonify(access_token=access_token, username=user.username), 200
-    return error_response(401, "Invalid username or password")
+        # Added username
+        return jsonify(access_token=access_token, email=user.email, username=user.username), 200
+
+    return error_response(401, "Invalid email or password")
+
 
 # Users GET Route
 @main_blueprint.route("/my_plans", methods=["GET"])
