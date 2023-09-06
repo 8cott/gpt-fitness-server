@@ -3,10 +3,13 @@ import openai
 from dotenv import dotenv_values
 from .extensions import db, jwt, bcrypt, migrate
 from flask_jwt_extended.exceptions import NoAuthorizationError, InvalidHeaderError, JWTDecodeError
+from flask_cors import CORS
 
 
 def create_app():
     app = Flask(__name__)
+
+    CORS(app)
 
     # Load environment variables
     config = dotenv_values(".env")

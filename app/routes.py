@@ -45,7 +45,7 @@ def generate_plan():
         # PROMPT for gpt-3.5-turbo
         prompt = (f"I need a fitness plan and diet plan for someone who is {age} year old {sex}, who weighs {weight} lbs, "
                   f"is {feet} feet {inches} inches tall, and wants to workout {days_per_week} days a week "
-                  f"with the goal of '{goals}'. Please do not include an active rest day or any rest day. Please provide:\n\n"
+                  f"with the following goals: '{goals}'. Please do not include an active rest day or any rest day. Please provide:\n\n"
                   "1. Workout Routine\n"
                   f"Please provide a workout routine for {days_per_week} \n"
                   "2. Workout Summary\n"
@@ -84,6 +84,52 @@ def generate_plan():
     except Exception as e:  # General catch-all for other errors
         return error_response(500, str(e))
 
+# Save Plan POST Route
+@main_blueprint.route("/save_plan", methods=["POST"])
+@jwt_required()
+def save_plan():
+    try:
+        # Get data from request
+        data = request.get_json()
+        user_id = data["user_id"]
+        plan = data["plan"]
+
+        # Create a new SavedPlan object
+        new_plan = SavedPlan(
+            user_id=user_id,
+            plan=plan
+        )
+
+        db.session.add(new_plan)
+        db.session.commit()
+
+        return jsonify({"message": "Plan saved successfully!"}), 201
+
+    except Exception as e:
+        return error_response(500, str(e))
+
+# Delete Saved Plan Route
+@main_blueprint.route("/plans/<int:plan_id>", methods=["DELETE"])
+@jwt_required()
+def delete_plan(plan_id):
+    try:
+        authenticated_user_id = int(get_jwt_identity())
+
+        # Fetch the plan by its ID
+        plan = SavedPlan.query.get_or_404(plan_id)
+
+        # Ensure that the authenticated user is deleting their own plan
+        if plan.user_id != authenticated_user_id:
+            return error_response(403, "Unauthorized action!")
+
+        db.session.delete(plan)
+        db.session.commit()
+
+        return jsonify({"message": "Plan deleted successfully!"})
+
+    except Exception as e:
+        return error_response(500, str(e))
+
 # Validate Password
 def is_valid_password(password):
     # Ensure password has at least 8 characters
@@ -98,7 +144,7 @@ def is_valid_password(password):
 
 # Users POST Route
 @main_blueprint.route("/users", methods=["POST"])
-def create_user():
+def signup():
     data = request.get_json()
 
     username = data.get("username")
@@ -216,7 +262,6 @@ def update_user(user_id):
     db.session.commit()
     return jsonify({"message": "User updated successfully!"})
 
-
 # Users DELETE Route
 @main_blueprint.route("/users/<int:user_id>", methods=["DELETE"])
 @jwt_required()
@@ -244,32 +289,8 @@ def login():
     user = User.query.filter_by(username=data['username']).first()
     if user and user.check_password(data['password']):
         access_token = create_access_token(identity=user.id)
-        return jsonify(access_token=access_token), 200
+        return jsonify(access_token=access_token, username=user.username), 200
     return error_response(401, "Invalid username or password")
-
-# Save Plan POST Route
-@main_blueprint.route("/save_plan", methods=["POST"])
-@jwt_required()
-def save_plan():
-    try:
-        # Get data from request
-        data = request.get_json()
-        user_id = data["user_id"]
-        plan = data["plan"]
-
-        # Create a new SavedPlan object
-        new_plan = SavedPlan(
-            user_id=user_id,
-            plan=plan
-        )
-
-        db.session.add(new_plan)
-        db.session.commit()
-
-        return jsonify({"message": "Plan saved successfully!"}), 201
-
-    except Exception as e:
-        return error_response(500, str(e))
 
 # Users GET Route
 @main_blueprint.route("/my_plans", methods=["GET"])
