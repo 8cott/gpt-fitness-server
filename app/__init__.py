@@ -4,7 +4,7 @@ from dotenv import dotenv_values
 from .extensions import db, jwt, bcrypt, migrate
 from flask_jwt_extended.exceptions import NoAuthorizationError, InvalidHeaderError, JWTDecodeError
 from flask_cors import CORS
-
+from datetime import timedelta
 
 def create_app():
     app = Flask(__name__)
@@ -23,6 +23,7 @@ def create_app():
 
     # Set JWT Secret Key
     app.config['JWT_SECRET_KEY'] = config['JWT_SECRET_KEY']
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(weeks=1)
 
     # Initialize Database, JWT, Bcrypt, and Migrate
     db.init_app(app)

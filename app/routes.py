@@ -5,7 +5,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 import openai
 import openai.error
 from datetime import datetime
-
+from datetime import timedelta
 
 def error_response(status_code, message):
     response = {
@@ -193,10 +193,10 @@ def signup():
 
 
 # Get User Route
-@main_blueprint.route("/users/<int:user_id>", methods=["GET"])
+@main_blueprint.route("/users/<string:username>", methods=["GET"])
 @jwt_required()
-def get_user(user_id):
-    user = User.query.get_or_404(user_id)
+def get_user(username):
+    user = User.query.filter_by(username=username).first_or_404()
     return jsonify({
         "id": user.id,
         "username": user.username,
@@ -211,36 +211,30 @@ def get_user(user_id):
         "dietary_restrictions": user.dietary_restrictions,
     })
 
+
 # Update User Route
 
 
 @main_blueprint.route("/users/<int:user_id>", methods=["PUT"])
 @jwt_required()
 def update_user(user_id):
-    # Get the authenticated user's ID from the JWT token and ensure it's an integer
     authenticated_user_id = int(get_jwt_identity())
 
-    # Ensure that the authenticated user is updating their own profile
     if user_id != authenticated_user_id:
         return error_response(403, "Unauthorized action!")
 
     user = User.query.get_or_404(user_id)
     data = request.get_json()
 
-    # Check if the old_password and new password fields are present
     if "old_password" in data and "new_password" in data:
-        # Check the old password
         if not user.check_password(data["old_password"]):
             return error_response(400, "Current password is incorrect")
 
-        # Validate the new password
         if not is_valid_password(data["new_password"]):
             return error_response(400, "Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, and a digit")
 
-        # If validation passes, update the password
         user.set_password(data["new_password"])
 
-    # Validate if the new username or email is not already taken by another user
     new_username = data.get("username")
     if new_username and new_username != user.username:
         existing_user = User.query.filter_by(username=new_username).first()
@@ -253,7 +247,6 @@ def update_user(user_id):
         if existing_user:
             return error_response(400, "Email already exists!")
 
-    # If validation passes, update the other fields
     if new_username:
         user.username = new_username
     if new_email:
@@ -297,16 +290,15 @@ def login():
     email = data.get('email')
     password = data.get('password')
 
-    # Check for missing fields
     if not all([email, password]):
         return error_response(400, "Missing fields!")
 
     user = User.query.filter_by(email=email).first()
 
     if user and user.check_password(password):
-        access_token = create_access_token(identity=user.id)
-        # Added username
+        access_token = create_access_token(identity=user.id, expires_delta=timedelta(weeks=1))
         return jsonify(access_token=access_token, email=user.email, username=user.username), 200
+
 
     return error_response(401, "Invalid email or password")
 
@@ -316,14 +308,11 @@ def login():
 @jwt_required()
 def get_user_plans():
     try:
-        # Fetch the user id from the JWT
         user_id = get_jwt_identity()
 
-        # Fetch all plans for the user that are not soft-deleted
         plans = SavedPlan.query.filter_by(
             user_id=user_id).all()
 
-        # Serialize the plans for JSON response
         plans_list = [{
             'id': plan.id,
             'plan': plan.plan,
