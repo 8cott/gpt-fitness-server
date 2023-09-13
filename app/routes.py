@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from .extensions import db
 from .models import User, SavedPlan
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
@@ -6,6 +6,7 @@ import openai
 import openai.error
 from datetime import datetime
 from datetime import timedelta
+
 
 def error_response(status_code, message):
     response = {
@@ -23,7 +24,6 @@ main_blueprint = Blueprint('main', __name__)
 
 @main_blueprint.route("/generate_plan", methods=["POST"])
 def generate_plan():
-
     try:
         data = request.get_json()
 
@@ -43,20 +43,22 @@ def generate_plan():
         dietary_restrictions = data["dietary_restrictions"]
 
         # PROMPT for gpt-3.5-turbo
-        prompt = (f"I need a fitness plan and diet plan for someone who is {age} year old {sex}, who weighs {weight} lbs, "
-                  f"is {feet} feet {inches} inches tall, and wants to workout {days_per_week} days a week "
-                  f"with the following goals: '{goals}'. Please do not include an active rest day or any rest day. Please provide:\n\n"
-                  "1. Workout Routine\n"
-                  f"Please provide a workout routine for {days_per_week} \n"
-                  "2. Workout Summary\n"
-                  f"Please provide a summary explaining why this workout was chosen. It should not be more than a paragraph long.\n"
-                  "3. Three-Day Diet Plan:\n"
-                  f"Please provide a diet plan for 3 days. Unless 'None' is chosen, please include foods that are part of the following diet: {dietary_restrictions}\n"
-                  "   - Day 1: Breakfast, Lunch, Dinner, Snack\n"
-                  "   - Day 2: Breakfast, Lunch, Dinner, Snack\n"
-                  "   - Day 3: Breakfast, Lunch, Dinner, Snack\n"
-                  "4. Diet Plan Summary\n"
-                  f"Please provide a summary explaining why this diet plan was chosen. It should not be more than a paragraph long.\n")
+        prompt = (
+            f"I need a fitness plan and diet plan for someone who is {age} year old {sex}, who weighs {weight} lbs, "
+            f"is {feet} feet {inches} inches tall, and wants to workout {days_per_week} days a week "
+            f"with the following goals: '{goals}'. Please do not include an active rest day or any rest day. Please provide:\n\n"
+            "1. Workout Routine\n"
+            f"Please provide a workout routine for {days_per_week} \n"
+            "2. Workout Summary\n"
+            f"Please provide a summary explaining why this workout was chosen. It should not be more than a paragraph long.\n"
+            "3. Three-Day Diet Plan:\n"
+            f"Please provide a diet plan for 3 days. Unless 'None' is chosen, please include foods that are part of the following diet: {dietary_restrictions}\n"
+            "   - Day 1: Breakfast, Lunch, Dinner, Snack\n"
+            "   - Day 2: Breakfast, Lunch, Dinner, Snack\n"
+            "   - Day 3: Breakfast, Lunch, Dinner, Snack\n"
+            "4. Diet Plan Summary\n"
+            f"Please provide a summary explaining why this diet plan was chosen. It should not be more than a paragraph long.\n"
+        )
 
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
@@ -66,7 +68,40 @@ def generate_plan():
 
         plan = response.choices[0].message["content"]
 
-        return jsonify({"user_id": user_id, "plan": plan})
+        # Extract workout_routine, workout_summary, diet_plan, and diet_summary
+        plan_lines = plan.split("\n")
+        workout_routine = ""
+        workout_summary = ""
+        diet_plan = ""
+        diet_summary = ""
+
+        current_section = None
+        for line in plan_lines:
+            if line.startswith("1. Workout Routine"):
+                current_section = "workout_routine"
+            elif line.startswith("2. Workout Summary"):
+                current_section = "workout_summary"
+            elif line.startswith("3. Three-Day Diet Plan"):
+                current_section = "diet_plan"
+            elif line.startswith("4. Diet Plan Summary"):
+                current_section = "diet_summary"
+            elif current_section:
+                if current_section == "workout_routine":
+                    workout_routine += line + "\n"
+                elif current_section == "workout_summary":
+                    workout_summary += line + "\n"
+                elif current_section == "diet_plan":
+                    diet_plan += line + "\n"
+                elif current_section == "diet_summary":
+                    diet_summary += line + "\n"
+
+        return jsonify({
+            "user_id": user_id,
+            "workout_routine": workout_routine.strip(),
+            "workout_summary": workout_summary.strip(),
+            "diet_plan": diet_plan.strip(),
+            "diet_summary": diet_summary.strip()
+        })
 
     # OpenAI Error Handling:
     except openai.error.RateLimitError:
@@ -91,15 +126,20 @@ def generate_plan():
 @jwt_required()
 def save_plan():
     try:
-        # Get data from request
         data = request.get_json()
         user_id = data["user_id"]
-        plan = data["plan"]
+        workout_routine = data["workout_routine"]
+        workout_summary = data["workout_summary"]
+        diet_plan = data["diet_plan"]
+        diet_summary = data["diet_summary"]
 
         # Create a new SavedPlan object
         new_plan = SavedPlan(
             user_id=user_id,
-            plan=plan
+            workout_routine=workout_routine,
+            workout_summary=workout_summary,
+            diet_plan=diet_plan,
+            diet_summary=diet_summary
         )
 
         db.session.add(new_plan)
@@ -296,9 +336,9 @@ def login():
     user = User.query.filter_by(email=email).first()
 
     if user and user.check_password(password):
-        access_token = create_access_token(identity=user.id, expires_delta=timedelta(weeks=1))
+        access_token = create_access_token(
+            identity=user.id, expires_delta=timedelta(weeks=1))
         return jsonify(access_token=access_token, email=user.email, username=user.username), 200
-
 
     return error_response(401, "Invalid email or password")
 
