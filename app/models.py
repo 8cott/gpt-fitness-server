@@ -39,7 +39,7 @@ class User(db.Model):
 class SavedPlan(db.Model):
     __tablename__ = "saved_plans"
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    username = db.Column(db.String(255), db.ForeignKey("users.username"))
     workout_routine = db.Column(db.Text, nullable=True)
     workout_summary = db.Column(db.Text, nullable=True)
     diet_plan = db.Column(db.Text, nullable=True)

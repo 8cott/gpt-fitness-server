@@ -96,7 +96,7 @@ def generate_plan():
                     diet_summary += line + "\n"
 
         return jsonify({
-            "user_id": user_id,
+            "username": user_id,
             "workout_routine": workout_routine.strip(),
             "workout_summary": workout_summary.strip(),
             "diet_plan": diet_plan.strip(),
@@ -127,7 +127,7 @@ def generate_plan():
 def save_plan():
     try:
         data = request.get_json()
-        user_id = data["user_id"]
+        username = data["username"]
         workout_routine = data["workout_routine"]
         workout_summary = data["workout_summary"]
         diet_plan = data["diet_plan"]
@@ -135,7 +135,7 @@ def save_plan():
 
         # Create a new SavedPlan object
         new_plan = SavedPlan(
-            user_id=user_id,
+            username=username,
             workout_routine=workout_routine,
             workout_summary=workout_summary,
             diet_plan=diet_plan,
@@ -343,7 +343,7 @@ def login():
     return error_response(401, "Invalid email or password")
 
 
-# Users GET Route
+
 @main_blueprint.route("/my_plans", methods=["GET"])
 @jwt_required()
 def get_user_plans():
