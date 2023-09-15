@@ -49,4 +49,3 @@ class SavedPlan(db.Model):
     # Relationship with User model
     user = db.relationship(
         "User", backref=db.backref("saved_plans", lazy=True))
-
