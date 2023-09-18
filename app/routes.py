@@ -159,7 +159,7 @@ def save_plan():
 # Delete Saved Plan Route
 
 
-@main_blueprint.route("/plans/<int:plan_id>", methods=["DELETE"])
+@main_blueprint.route("/my_plans/<int:plan_id>", methods=["DELETE"])
 @jwt_required()
 def delete_plan(plan_id):
     try:
@@ -349,6 +349,7 @@ def login():
     return error_response(401, "Invalid email or password")
 
 
+# GET ALL PLANS FOR USER
 @main_blueprint.route("/my_plans", methods=["GET"])
 @jwt_required()
 def get_user_plans():
@@ -360,11 +361,41 @@ def get_user_plans():
 
         plans_list = [{
             'id': plan.id,
-            'plan': plan.plan,
+            'workout_routine': plan.workout_routine,
+            'workout_summary': plan.workout_summary,
+            'diet_plan': plan.diet_plan,
+            'diet_summary': plan.diet_summary,
             'created_at': plan.created_at.strftime('%Y-%m-%d %H:%M:%S')
         } for plan in plans]
 
         return jsonify(plans_list)
+
+    except Exception as e:
+        return error_response(500, str(e))
+
+
+# GET PLAN BY ID FOR USER
+@main_blueprint.route("/my_plans/<int:plan_id>", methods=["GET"])
+@jwt_required()
+def get_single_user_plan(plan_id):
+    try:
+        user_id = get_jwt_identity()
+
+        plan = SavedPlan.query.filter_by(id=plan_id, user_id=user_id).first()
+
+        if not plan:
+            return error_response(404, "Plan not found or unauthorized.")
+
+        plan_details = {
+            'id': plan.id,
+            'workout_routine': plan.workout_routine,
+            'workout_summary': plan.workout_summary,
+            'diet_plan': plan.diet_plan,
+            'diet_summary': plan.diet_summary,
+            'created_at': plan.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+        return jsonify(plan_details)
 
     except Exception as e:
         return error_response(500, str(e))
