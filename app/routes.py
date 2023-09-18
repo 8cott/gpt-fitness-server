@@ -128,14 +128,19 @@ def save_plan():
     try:
         data = request.get_json()
         username = data["username"]
+        user = User.query.filter_by(username=username).first()
+
+        if user is None:
+            return error_response(404, "User not found")
+
         workout_routine = data["workout_routine"]
         workout_summary = data["workout_summary"]
         diet_plan = data["diet_plan"]
         diet_summary = data["diet_summary"]
 
-        # Create a new SavedPlan object
+        # Create a new SavedPlan object associated with the user
         new_plan = SavedPlan(
-            username=username,
+            user=user,
             workout_routine=workout_routine,
             workout_summary=workout_summary,
             diet_plan=diet_plan,
@@ -149,6 +154,7 @@ def save_plan():
 
     except Exception as e:
         return error_response(500, str(e))
+
 
 # Delete Saved Plan Route
 
@@ -341,7 +347,6 @@ def login():
         return jsonify(access_token=access_token, email=user.email, username=user.username), 200
 
     return error_response(401, "Invalid email or password")
-
 
 
 @main_blueprint.route("/my_plans", methods=["GET"])

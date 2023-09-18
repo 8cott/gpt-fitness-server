@@ -2,8 +2,6 @@ from .extensions import db, bcrypt
 from sqlalchemy import or_
 
 # User Model
-
-
 class User(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
@@ -39,7 +37,7 @@ class User(db.Model):
 class SavedPlan(db.Model):
     __tablename__ = "saved_plans"
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(255), db.ForeignKey("users.username"))
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     workout_routine = db.Column(db.Text, nullable=True)
     workout_summary = db.Column(db.Text, nullable=True)
     diet_plan = db.Column(db.Text, nullable=True)
@@ -47,5 +45,4 @@ class SavedPlan(db.Model):
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
     # Relationship with User model
-    user = db.relationship(
-        "User", backref=db.backref("saved_plans", lazy=True))
+    user = db.relationship("User", backref=db.backref("saved_plans", lazy=True, cascade="all, delete-orphan"))
