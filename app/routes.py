@@ -26,6 +26,7 @@ main_blueprint = Blueprint('main', __name__)
 def generate_plan():
     try:
         data = request.get_json()
+        print("Received Data:", data)
 
         required_keys = ["user_id", "age", "sex", "weight", "feet",
                          "inches", "goals", "days_per_week", "dietary_restrictions"]
@@ -59,6 +60,7 @@ def generate_plan():
             "4. Diet Plan Summary\n"
             f"Please provide a summary explaining why this diet plan was chosen. It should not be more than a paragraph long.\n"
         )
+        print("Generated Prompt:", prompt)
 
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
@@ -127,8 +129,8 @@ def generate_plan():
 def save_plan():
     try:
         data = request.get_json()
-        username = data["username"]
-        user = User.query.filter_by(username=username).first()
+        user_id = data["user_id"]
+        user = User.query.get(user_id)
 
         if user is None:
             return error_response(404, "User not found")
@@ -138,7 +140,6 @@ def save_plan():
         diet_plan = data["diet_plan"]
         diet_summary = data["diet_summary"]
 
-        # Create a new SavedPlan object associated with the user
         new_plan = SavedPlan(
             user=user,
             workout_routine=workout_routine,
@@ -239,10 +240,10 @@ def signup():
 
 
 # Get User Route
-@main_blueprint.route("/users/<string:username>", methods=["GET"])
+@main_blueprint.route("/users/<string:user_id>", methods=["GET"])
 @jwt_required()
-def get_user(username):
-    user = User.query.filter_by(username=username).first_or_404()
+def get_user(user_id):
+    user = User.query.get_or_404(user_id)
     return jsonify({
         "id": user.id,
         "username": user.username,
@@ -336,6 +337,9 @@ def login():
     email = data.get('email')
     password = data.get('password')
 
+    print('Received email:', email)
+    print('Received password:', password)
+
     if not all([email, password]):
         return error_response(400, "Missing fields!")
 
@@ -344,8 +348,15 @@ def login():
     if user and user.check_password(password):
         access_token = create_access_token(
             identity=user.id, expires_delta=timedelta(weeks=1))
-        return jsonify(access_token=access_token, email=user.email, username=user.username), 200
 
+        # Return the access token in the response
+        return jsonify(
+            access_token=access_token,
+            user_id=user.id,  # Include user_id for frontend reference if needed
+            username=user.username
+        ), 200
+
+    # If email or password is incorrect, return an error response
     return error_response(401, "Invalid email or password")
 
 

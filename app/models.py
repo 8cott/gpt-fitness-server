@@ -29,8 +29,9 @@ class User(db.Model):
         return bcrypt.check_password_hash(self.password_hash, password)
 
     @classmethod
-    def username_or_email_exists(cls, username, email):
-        return db.session.query(cls).filter(or_(cls.username == username, cls.email == email)).first() is not None
+    def get_user_id_by_username_or_email(cls, username, email):
+        user = db.session.query(cls).filter(or_(cls.username == username, cls.email == email)).first()
+        return user.id if user else None
 
 
 # Saved Plans Model
