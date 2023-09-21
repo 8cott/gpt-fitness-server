@@ -1,3 +1,4 @@
+from flask import jsonify
 from flask import Blueprint, request, jsonify, current_app
 from .extensions import db
 from .models import User, SavedPlan
@@ -20,6 +21,11 @@ def error_response(status_code, message):
 
 
 main_blueprint = Blueprint('main', __name__)
+
+
+@main_blueprint.route('/healthz', methods=['GET'])
+def health_check():
+    return jsonify(status='OK'), 200
 
 
 @main_blueprint.route("/generate_plan", methods=["POST"])
@@ -412,3 +418,6 @@ def get_single_user_plan(plan_id):
 
     except Exception as e:
         return error_response(500, str(e))
+    
+
+
