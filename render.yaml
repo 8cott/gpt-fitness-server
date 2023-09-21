@@ -1,7 +1,0 @@
-services:
-- type: web
-  name: gpt-fitness-server
-  env: python3
-  build: v1
-    cmd: pip install -r requirements.txt
-  run: python3 run.py
