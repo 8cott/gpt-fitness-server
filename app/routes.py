@@ -70,7 +70,6 @@ def generate_plan():
 
         plan = response.choices[0].message["content"]
 
-        # Extract workout_routine, workout_summary, diet_plan, and diet_summary
         plan_lines = plan.split("\n")
         workout_routine = ""
         workout_summary = ""
@@ -118,7 +117,7 @@ def generate_plan():
     except openai.error.OpenAIError as e:
         return error_response(500, f"OpenAI Error: {str(e)}")
 
-    except Exception as e:  # General catch-all for other errors
+    except Exception as e:
         return error_response(500, str(e))
 
 # Save Plan POST Route
@@ -139,13 +138,15 @@ def save_plan():
         workout_summary = data["workout_summary"]
         diet_plan = data["diet_plan"]
         diet_summary = data["diet_summary"]
+        plan_name = data.get("plan_name")
 
         new_plan = SavedPlan(
             user=user,
             workout_routine=workout_routine,
             workout_summary=workout_summary,
             diet_plan=diet_plan,
-            diet_summary=diet_summary
+            diet_summary=diet_summary,
+            plan_name=plan_name
         )
 
         db.session.add(new_plan)
@@ -166,10 +167,8 @@ def delete_plan(plan_id):
     try:
         authenticated_user_id = int(get_jwt_identity())
 
-        # Fetch the plan by its ID
         plan = SavedPlan.query.get_or_404(plan_id)
 
-        # Ensure that the authenticated user is deleting their own plan
         if plan.user_id != authenticated_user_id:
             return error_response(403, "Unauthorized action!")
 
@@ -185,10 +184,8 @@ def delete_plan(plan_id):
 
 
 def is_valid_password(password):
-    # Ensure password has at least 8 characters
     if len(password) < 8:
         return False
-    # Ensure password has at least one uppercase, one lowercase, and one digit
     if not (any(char.isdigit() for char in password) and
             any(char.isupper() for char in password) and
             any(char.islower() for char in password)):
@@ -206,15 +203,12 @@ def signup():
     email = data.get("email")
     password = data.get("password")
 
-    # Check for missing fields
     if not all([username, email, password]):
         return error_response(400, "Missing Fields!")
 
-    # Validate the password
     if not is_valid_password(password):
         return error_response(400, "Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, and a digit")
 
-    # Check if the username or email already exists
     if User.query.filter_by(username=username).first():
         return error_response(400, "Username already exists!")
     if User.query.filter_by(email=email).first():
@@ -357,14 +351,12 @@ def login():
         access_token = create_access_token(
             identity=user.id, expires_delta=timedelta(weeks=1))
 
-        # Return the access token in the response
         return jsonify(
             access_token=access_token,
-            user_id=user.id,  # Include user_id for frontend reference if needed
+            user_id=user.id,
             username=user.username
         ), 200
 
-    # If email or password is incorrect, return an error response
     return error_response(401, "Invalid email or password")
 
 
@@ -384,6 +376,7 @@ def get_user_plans():
             'workout_summary': plan.workout_summary,
             'diet_plan': plan.diet_plan,
             'diet_summary': plan.diet_summary,
+            'plan_name': plan.plan_name,
             'created_at': plan.created_at.strftime('%Y-%m-%d %H:%M:%S')
         } for plan in plans]
 
@@ -411,6 +404,7 @@ def get_single_user_plan(plan_id):
             'workout_summary': plan.workout_summary,
             'diet_plan': plan.diet_plan,
             'diet_summary': plan.diet_summary,
+            'plan_name': plan.plan_name,
             'created_at': plan.created_at.strftime('%Y-%m-%d %H:%M:%S')
         }
 

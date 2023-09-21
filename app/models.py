@@ -2,6 +2,8 @@ from .extensions import db, bcrypt
 from sqlalchemy import or_
 
 # User Model
+
+
 class User(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
@@ -30,7 +32,8 @@ class User(db.Model):
 
     @classmethod
     def get_user_id_by_username_or_email(cls, username, email):
-        user = db.session.query(cls).filter(or_(cls.username == username, cls.email == email)).first()
+        user = db.session.query(cls).filter(
+            or_(cls.username == username, cls.email == email)).first()
         return user.id if user else None
 
 
@@ -43,7 +46,9 @@ class SavedPlan(db.Model):
     workout_summary = db.Column(db.Text, nullable=True)
     diet_plan = db.Column(db.Text, nullable=True)
     diet_summary = db.Column(db.Text, nullable=True)
+    plan_name = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
     # Relationship with User model
-    user = db.relationship("User", backref=db.backref("saved_plans", lazy=True, cascade="all, delete-orphan"))
+    user = db.relationship("User", backref=db.backref(
+        "saved_plans", lazy=True, cascade="all, delete-orphan"))
