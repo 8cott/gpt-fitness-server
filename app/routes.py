@@ -195,7 +195,7 @@ def is_valid_password(password):
         return False
     return True
 
-# Users POST Route
+# Users Signup POST Route
 
 
 @main_blueprint.route("/users", methods=["POST"])
@@ -236,7 +236,15 @@ def signup():
 
     db.session.add(new_user)
     db.session.commit()
-    return jsonify({"message": "User created successfully!"}), 201
+
+    access_token = create_access_token(
+        identity=new_user.id, expires_delta=timedelta(weeks=1))
+
+    return jsonify(
+        access_token=access_token,
+        user_id=new_user.id,
+        username=new_user.username
+    ), 201
 
 
 # Get User Route
