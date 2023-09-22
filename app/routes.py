@@ -90,7 +90,7 @@ def generate_plan():
                 current_section = "workout_summary"
             elif line.startswith("3. Three-Day Diet Plan"):
                 current_section = "diet_plan"
-            elif line.startswith("4. Diet Plan Summary"): 
+            elif line.startswith("4. Diet Plan Summary"):
                 current_section = "diet_summary"
             elif current_section:
                 if current_section == "workout_routine":
