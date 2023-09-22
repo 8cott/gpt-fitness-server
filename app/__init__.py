@@ -13,27 +13,20 @@ import os
 def create_app():
     app = Flask(__name__)
 
-    # Define allowed origins based on the environment
-    allowed_origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173")
-    allowed_origins = allowed_origins.split(',')
-
-    # Set up CORS with the allowed origins
-    CORS(app, origins=allowed_origins)
+    CORS(app)
 
     # Load environment variables
     config = dotenv_values(".env")
 
     # Set up OpenAI
-    openai.api_key = os.environ.get("OPENAI_API_KEY", config.get("OPENAI_API_KEY"))
+    openai.api_key = config["OPENAI_API_KEY"]
 
     # Flask SQLAlchemy Configurations
-    # Use DATABASE_URL from Heroku if available, otherwise use local URI
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL") or os.environ.get("SQLALCHEMY_DATABASE_URI")
+    app.config['SQLALCHEMY_DATABASE_URI'] = config["SQLALCHEMY_DATABASE_URI"]
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-
     # Set JWT Secret Key
-    app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', config.get('JWT_SECRET_KEY'))
+    app.config['JWT_SECRET_KEY'] = config['JWT_SECRET_KEY']
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(weeks=1)
 
     # Initialize Database, JWT, Bcrypt, and Migrate
