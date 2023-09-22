@@ -13,7 +13,12 @@ import os
 def create_app():
     app = Flask(__name__)
 
-    CORS(app)
+    # Define allowed origins based on the environment
+    allowed_origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173")
+    allowed_origins = allowed_origins.split(',')
+
+    # Set up CORS with the allowed origins
+    CORS(app, origins=allowed_origins)
 
     # Load environment variables
     config = dotenv_values(".env")
