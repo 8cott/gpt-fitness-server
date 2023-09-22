@@ -19,14 +19,14 @@ def create_app():
     config = dotenv_values(".env")
 
     # Set up OpenAI
-    openai.api_key = config["OPENAI_API_KEY"]
+    openai.api_key = os.environ.get("OPENAI_API_KEY", config.get("OPENAI_API_KEY"))
 
     # Flask SQLAlchemy Configurations
-    app.config['SQLALCHEMY_DATABASE_URI'] = config["SQLALCHEMY_DATABASE_URI"]
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("SQLALCHEMY_DATABASE_URI", config.get("SQLALCHEMY_DATABASE_URI"))
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Set JWT Secret Key
-    app.config['JWT_SECRET_KEY'] = config['JWT_SECRET_KEY']
+    app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', config.get('JWT_SECRET_KEY'))
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(weeks=1)
 
     # Initialize Database, JWT, Bcrypt, and Migrate
