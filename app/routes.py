@@ -23,11 +23,7 @@ def error_response(status_code, message):
 main_blueprint = Blueprint("main", __name__)
 
 
-@main_blueprint.route("/", methods=["GET"])
-@cross_origin()
-def root():
-    current_app.logger.info("Request received at root endpoint")
-    return jsonify(message="GPT Fitness"), 200
+
 
 
 @main_blueprint.route("/healthz", methods=["GET"])
