@@ -16,12 +16,12 @@ def create_app(*args, **kwargs):
 
     # Check if the app is running on Heroku
     if 'DYNO' in os.environ:
-        # We are on Heroku, load environment variables directly from os.environ
+        # Heroku
         openai.api_key = os.environ.get("OPENAI_API_KEY")
-        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("SQLALCHEMY_DATABASE_URI")
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
         app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
     else:
-        # We are local, load environment variables using dotenv
+        # Local Env
         load_dotenv(".env")
         config = dotenv_values(".env")
         openai.api_key = config["OPENAI_API_KEY"]
