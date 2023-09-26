@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_cors import cross_origin
-from . import allowed_origins
 from .extensions import db
 from .models import User, SavedPlan
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
