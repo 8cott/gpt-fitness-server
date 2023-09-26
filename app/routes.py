@@ -20,12 +20,17 @@ def error_response(status_code, message):
     return jsonify(response), status_code
 
 
-main_blueprint = Blueprint('main', __name__)
+main_blueprint = Blueprint("main", __name__)
 
 
-@main_blueprint.route('/healthz', methods=['GET'])
+@main_blueprint.route("/", methods=["GET"])
+def root():
+    return jsonify(message="Hello, World!"), 200
+
+
+@main_blueprint.route("/healthz", methods=["GET"])
 def health_check():
-    return jsonify(status='OK'), 200
+    return jsonify(status="OK"), 200
 
 
 @main_blueprint.route("/generate_plan", methods=["POST"])
@@ -338,15 +343,15 @@ def delete_user(user_id):
 # Users LOGIN Route
 
 
-@main_blueprint.route('/login', methods=['POST'])
+@main_blueprint.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
 
-    email = data.get('email')
-    password = data.get('password')
+    email = data.get("email")
+    password = data.get("password")
 
-    print('Received email:', email)
-    print('Received password:', password)
+    print("Received email:", email)
+    print("Received password:", password)
 
     if not all([email, password]):
         return error_response(400, "Missing fields!")
@@ -377,13 +382,13 @@ def get_user_plans():
             user_id=user_id).all()
 
         plans_list = [{
-            'id': plan.id,
-            'workout_routine': plan.workout_routine,
-            'workout_summary': plan.workout_summary,
-            'diet_plan': plan.diet_plan,
-            'diet_summary': plan.diet_summary,
-            'plan_name': plan.plan_name,
-            'created_at': plan.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            "id": plan.id,
+            "workout_routine": plan.workout_routine,
+            "workout_summary": plan.workout_summary,
+            "diet_plan": plan.diet_plan,
+            "diet_summary": plan.diet_summary,
+            "plan_name": plan.plan_name,
+            "created_at": plan.created_at.strftime("%Y-%m-%d %H:%M:%S")
         } for plan in plans]
 
         return jsonify(plans_list)
@@ -405,13 +410,13 @@ def get_single_user_plan(plan_id):
             return error_response(404, "Plan not found or unauthorized.")
 
         plan_details = {
-            'id': plan.id,
-            'workout_routine': plan.workout_routine,
-            'workout_summary': plan.workout_summary,
-            'diet_plan': plan.diet_plan,
-            'diet_summary': plan.diet_summary,
-            'plan_name': plan.plan_name,
-            'created_at': plan.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            "id": plan.id,
+            "workout_routine": plan.workout_routine,
+            "workout_summary": plan.workout_summary,
+            "diet_plan": plan.diet_plan,
+            "diet_summary": plan.diet_summary,
+            "plan_name": plan.plan_name,
+            "created_at": plan.created_at.strftime("%Y-%m-%d %H:%M:%S")
         }
 
         return jsonify(plan_details)
