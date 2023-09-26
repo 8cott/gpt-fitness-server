@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import openai
 from dotenv import dotenv_values, load_dotenv
 from .extensions import db, jwt, bcrypt, migrate
@@ -12,6 +12,14 @@ import os
 logging.basicConfig(level=logging.DEBUG)
 
 def create_app(*args, **kwargs):
+    request_logger = logging.getLogger('request_logger')
+    request_logger.setLevel(logging.INFO)
+    request_handler = logging.StreamHandler()
+    request_handler.setLevel(logging.INFO)
+    request_formatter = logging.Formatter('%(asctime)s - %(message)s')
+    request_handler.setFormatter(request_formatter)
+    request_logger.addHandler(request_handler)
+
     logging.debug("Before Flask app instantiation")
     app = Flask(__name__)
     logging.debug("After Flask app instantiation")
