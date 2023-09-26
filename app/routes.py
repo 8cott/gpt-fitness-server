@@ -25,19 +25,19 @@ main_blueprint = Blueprint("main", __name__)
 
 
 @main_blueprint.route("/", methods=["GET"])
-@cross_origin(origins=allowed_origins, headers=['Content-Type', 'Authorization'])
+@cross_origin()
 def root():
     return jsonify(message="Hello, World!"), 200
 
 
 @main_blueprint.route("/healthz", methods=["GET"])
-@cross_origin(origins=allowed_origins, headers=['Content-Type', 'Authorization'])
+@cross_origin()
 def health_check():
     return jsonify(status="OK"), 200
 
 
 @main_blueprint.route("/generate_plan", methods=["POST"])
-@cross_origin(origins=allowed_origins, headers=['Content-Type', 'Authorization'])
+@cross_origin()
 def generate_plan():
     try:
         data = request.get_json()
@@ -140,7 +140,7 @@ def generate_plan():
 
 @main_blueprint.route("/save_plan", methods=["POST"])
 @jwt_required()
-@cross_origin(origins=allowed_origins, headers=['Content-Type', 'Authorization'])
+@cross_origin()
 def save_plan():
     try:
         data = request.get_json()
@@ -179,7 +179,7 @@ def save_plan():
 
 @main_blueprint.route("/my_plans/<int:plan_id>", methods=["DELETE"])
 @jwt_required()
-@cross_origin(origins=allowed_origins, headers=['Content-Type', 'Authorization'])
+@cross_origin()
 def delete_plan(plan_id):
     try:
         authenticated_user_id = int(get_jwt_identity())
@@ -213,7 +213,7 @@ def is_valid_password(password):
 
 
 @main_blueprint.route("/users", methods=["POST"])
-@cross_origin(origins=allowed_origins, headers=['Content-Type', 'Authorization'])
+@cross_origin()
 def signup():
     data = request.get_json()
 
@@ -262,7 +262,7 @@ def signup():
 # Get User Route
 @main_blueprint.route("/users/<string:user_id>", methods=["GET"])
 @jwt_required()
-@cross_origin(origins=allowed_origins, headers=['Content-Type', 'Authorization'])
+@cross_origin()
 def get_user(user_id):
     user = User.query.get_or_404(user_id)
     return jsonify({
@@ -285,7 +285,7 @@ def get_user(user_id):
 
 @main_blueprint.route("/users/<int:user_id>", methods=["PUT"])
 @jwt_required()
-@cross_origin(origins=allowed_origins, headers=['Content-Type', 'Authorization'])
+@cross_origin()
 def update_user(user_id):
     authenticated_user_id = int(get_jwt_identity())
 
@@ -339,7 +339,7 @@ def update_user(user_id):
 
 @main_blueprint.route("/users/<int:user_id>", methods=["DELETE"])
 @jwt_required()
-@cross_origin(origins=allowed_origins, headers=['Content-Type', 'Authorization'])
+@cross_origin()
 def delete_user(user_id):
     authenticated_user_id = int(get_jwt_identity())
     if user_id != authenticated_user_id:
@@ -354,7 +354,7 @@ def delete_user(user_id):
 
 
 @main_blueprint.route("/login", methods=["POST"])
-@cross_origin(origins=allowed_origins, headers=['Content-Type', 'Authorization'])
+@cross_origin()
 def login():
     data = request.get_json()
 
@@ -385,7 +385,7 @@ def login():
 # GET ALL PLANS FOR USER
 @main_blueprint.route("/my_plans", methods=["GET"])
 @jwt_required()
-@cross_origin(origins=allowed_origins, headers=['Content-Type', 'Authorization'])
+@cross_origin()
 def get_user_plans():
     try:
         user_id = get_jwt_identity()
@@ -412,7 +412,7 @@ def get_user_plans():
 # GET PLAN BY ID FOR USER
 @main_blueprint.route("/my_plans/<int:plan_id>", methods=["GET"])
 @jwt_required()
-@cross_origin(origins=allowed_origins, headers=['Content-Type', 'Authorization'])
+@cross_origin()
 def get_single_user_plan(plan_id):
     try:
         user_id = get_jwt_identity()
