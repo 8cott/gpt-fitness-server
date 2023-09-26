@@ -26,13 +26,6 @@ main_blueprint = Blueprint("main", __name__)
 
 
 
-@main_blueprint.route("/healthz", methods=["GET"])
-@cross_origin()
-def health_check():
-    print("Request received at root endpoint")
-    return jsonify(status="OK"), 200
-
-
 @main_blueprint.route("/generate_plan", methods=["POST"])
 @cross_origin()
 def generate_plan():
