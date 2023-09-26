@@ -1,6 +1,6 @@
 from flask import Flask, jsonify
 import openai
-from dotenv import dotenv_values
+from dotenv import dotenv_values, load_dotenv
 from .extensions import db, jwt, bcrypt, migrate
 from flask_jwt_extended.exceptions import NoAuthorizationError, InvalidHeaderError, JWTDecodeError
 from flask_cors import CORS
@@ -15,18 +15,21 @@ def create_app(*args, **kwargs):
 
     CORS(app, resources={r"/*": {"origins": ["http://localhost:5173"]}})
 
-    # Load environment variables
-    config = dotenv_values(".env")
+    # Check if the app is running on Heroku
+    if 'DYNO' in os.environ:
+        # We are on Heroku, load environment variables directly from os.environ
+        openai.api_key = os.environ.get("OPENAI_API_KEY")
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("SQLALCHEMY_DATABASE_URI")
+        app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
+    else:
+        # We are local, load environment variables using dotenv
+        load_dotenv(".env")
+        config = dotenv_values(".env")
+        openai.api_key = config["OPENAI_API_KEY"]
+        app.config['SQLALCHEMY_DATABASE_URI'] = config["SQLALCHEMY_DATABASE_URI"]
+        app.config['JWT_SECRET_KEY'] = config['JWT_SECRET_KEY']
 
-    # Set up OpenAI
-    openai.api_key = config["OPENAI_API_KEY"]
-
-    # Flask SQLAlchemy Configurations
-    app.config['SQLALCHEMY_DATABASE_URI'] = config["SQLALCHEMY_DATABASE_URI"]
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-    # Set JWT Secret Key
-    app.config['JWT_SECRET_KEY'] = config['JWT_SECRET_KEY']
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(weeks=1)
 
     # Initialize Database, JWT, Bcrypt, and Migrate
