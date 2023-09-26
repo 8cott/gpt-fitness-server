@@ -10,7 +10,7 @@ from logging.handlers import RotatingFileHandler
 import os
 
 
-def create_app():
+def create_app(*args, **kwargs):
     app = Flask(__name__)
 
     CORS(app, resources={r"/*": {"origins": ["http://localhost:5173"]}})
