@@ -12,8 +12,7 @@ import os
 
 def create_app(*args, **kwargs):
     app = Flask(__name__)
-
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    CORS(app)
 
     # Check if the app is running on Heroku
     if 'DYNO' in os.environ:
