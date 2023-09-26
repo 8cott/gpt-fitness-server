@@ -9,9 +9,13 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 
+logging.basicConfig(level=logging.DEBUG)
 
 def create_app(*args, **kwargs):
+    logging.debug("Before Flask app instantiation")
     app = Flask(__name__)
+    logging.debug("After Flask app instantiation")
+
     CORS(app, resources={r"/*": {"origins": "*"}})
 
     # Check if the app is running on Heroku

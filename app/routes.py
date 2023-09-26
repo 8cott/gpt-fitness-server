@@ -7,7 +7,9 @@ import openai
 import openai.error
 from datetime import datetime
 from datetime import timedelta
+import logging
 
+logging.basicConfig(level=logging.DEBUG)
 
 def error_response(status_code, message):
     response = {
@@ -23,7 +25,19 @@ def error_response(status_code, message):
 main_blueprint = Blueprint("main", __name__)
 
 
+@main_blueprint.route("/", methods=["GET"])
+@cross_origin()
+def root():
+    logging.debug("Inside index route")
+    logging.debug("Leaving index route")
+    return jsonify(message="GPT Fitness"), 200
 
+
+@main_blueprint.route("/healthz", methods=["GET"])
+@cross_origin()
+def health_check():
+    print("Request received at root endpoint")
+    return jsonify(status="OK"), 200
 
 
 @main_blueprint.route("/generate_plan", methods=["POST"])
