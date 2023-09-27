@@ -1,5 +1,6 @@
-from .extensions import db, bcrypt
 from sqlalchemy import or_
+
+from .extensions import bcrypt, db
 
 # User Model
 

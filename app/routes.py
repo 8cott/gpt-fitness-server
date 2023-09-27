@@ -1,15 +1,18 @@
-from flask import Blueprint, request, jsonify, current_app
-from flask_cors import cross_origin
-from .extensions import db
-from .models import User, SavedPlan
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+import logging
+from datetime import datetime, timedelta
+
 import openai
 import openai.error
-from datetime import datetime
-from datetime import timedelta
-import logging
+from flask import Blueprint, current_app, jsonify, request
+from flask_cors import cross_origin
+from flask_jwt_extended import (create_access_token, get_jwt_identity,
+                                jwt_required)
+
+from .extensions import db
+from .models import SavedPlan, User
 
 logging.basicConfig(level=logging.DEBUG)
+
 
 def error_response(status_code, message):
     response = {
@@ -377,13 +380,21 @@ def login():
         access_token = create_access_token(
             identity=user.id, expires_delta=timedelta(weeks=1))
 
-        return jsonify(
+        response = jsonify(
             access_token=access_token,
             user_id=user.id,
             username=user.username
         ), 200
+        current_app.logger.info(f"Returning response: {response}")
+        return response
 
-    return error_response(401, "Invalid email or password")
+    #     return jsonify(
+    #         access_token=access_token,
+    #         user_id=user.id,
+    #         username=user.username
+    #     ), 200
+
+    # return error_response(401, "Invalid email or password")
 
 
 # GET ALL PLANS FOR USER
@@ -440,6 +451,3 @@ def get_single_user_plan(plan_id):
 
     except Exception as e:
         return error_response(500, str(e))
-    
-
-
