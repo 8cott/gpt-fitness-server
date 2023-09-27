@@ -67,6 +67,11 @@ def create_app(*args, **kwargs):
         def handle_jwt_decode_error(e):
             return jsonify(error=str(e)), 400
 
+        @app.errorhandler(Exception)
+        def handle_generic_error(e):
+            app.logger.error(f"Unhandled Exception: {e}", exc_info=True)
+            return jsonify(error=str(e)), 500
+
         # Set up logging
         if not app.debug:
             if 'DYNO' in os.environ:
@@ -97,5 +102,5 @@ def create_app(*args, **kwargs):
         raise
     
     app.logger.info('Flask app created successfully') 
-    
+
     return app
