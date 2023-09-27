@@ -36,3 +36,5 @@
 2023-09-22 17:38:10,164 INFO: GPT-Fitness startup [in /Users/scottrubin/Coding/projects/gpt-fitness-server/app/__init__.py:73]
 2023-09-25 11:49:58,236 INFO: GPT-Fitness startup [in /Users/scottrubin/Coding/projects/gpt-fitness-server/app/__init__.py:73]
 2023-09-26 12:23:14,039 INFO: GPT-Fitness startup [in /Users/scottrubin/Coding/projects/gpt-fitness-server/app/__init__.py:75]
+2023-09-27 11:52:06,162 INFO: GPT-Fitness startup [in /Users/scottrubin/Coding/projects/gpt-fitness-server/app/__init__.py:93]
+2023-09-27 11:52:06,162 INFO: Flask app created successfully [in /Users/scottrubin/Coding/projects/gpt-fitness-server/app/__init__.py:99]
