@@ -88,7 +88,8 @@ def generate_plan():
             model="gpt-3.5-turbo",
             messages=[{"role": "system", "content": "You are a fitness assistant."},
                       {"role": "user", "content": prompt}],
-            temperature=1
+            temperature=1,
+            max_tokens=1500
         )
 
         tokens_used = response['usage']['total_tokens']
