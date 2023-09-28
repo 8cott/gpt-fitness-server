@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime, timedelta
 
 import openai
@@ -10,8 +9,6 @@ from flask_jwt_extended import (create_access_token, get_jwt_identity,
 
 from .extensions import db
 from .models import SavedPlan, User
-
-logging.basicConfig(level=logging.DEBUG)
 
 
 def error_response(status_code, message):
@@ -31,8 +28,6 @@ main_blueprint = Blueprint("main", __name__)
 @main_blueprint.route("/", methods=["GET"])
 @cross_origin()
 def root():
-    logging.debug("Inside index route")
-    logging.debug("Leaving index route")
     return jsonify(message="GPT Fitness"), 200
 
 
@@ -390,16 +385,7 @@ def login():
             user_id=user.id,
             username=user.username
         ), 200
-        # current_app.logger.info(f"Returning response: {response}")
         return response
-
-    #     return jsonify(
-    #         access_token=access_token,
-    #         user_id=user.id,
-    #         username=user.username
-    #     ), 200
-
-    # return error_response(401, "Invalid email or password")
 
 
 # GET ALL PLANS FOR USER
