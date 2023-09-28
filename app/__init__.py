@@ -3,7 +3,6 @@ import os
 import sys
 from datetime import timedelta
 from logging.handlers import RotatingFileHandler
-
 import openai
 from dotenv import dotenv_values, load_dotenv
 from flask import Flask, jsonify
@@ -12,7 +11,7 @@ from flask_jwt_extended.exceptions import (InvalidHeaderError, JWTDecodeError,
                                            NoAuthorizationError)
 
 from .extensions import bcrypt, db, jwt, migrate
-
+from app import models
 
 def create_app(*args, **kwargs):
     from . import routes
