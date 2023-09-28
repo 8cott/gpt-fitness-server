@@ -385,7 +385,7 @@ def login():
             user_id=user.id,
             username=user.username
         ), 200
-        current_app.logger.info(f"Returning response: {response}")
+        # current_app.logger.info(f"Returning response: {response}")
         return response
 
     #     return jsonify(

@@ -115,6 +115,5 @@ def create_app(*args, **kwargs):
         raise
     
     app.logger.info('Flask app created successfully!')
-    print(app.url_map)
 
     return app
