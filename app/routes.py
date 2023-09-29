@@ -80,7 +80,7 @@ def generate_plan():
         print("Generated Prompt:", prompt)
 
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo-16k",
             messages=[{"role": "system", "content": "You are a fitness assistant."},
                       {"role": "user", "content": prompt}],
             temperature=1,
