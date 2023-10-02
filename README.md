@@ -1,6 +1,5 @@
 # GPT Fitness - Server Side
 [![Python Version](https://img.shields.io/badge/Python-3.9%2B-brightgreen.svg)](https://www.python.org/downloads/)
-[![React Version](https://img.shields.io/badge/React-17.0%2B-blue.svg)](https://reactjs.org/)
 [![Flask Version](https://img.shields.io/badge/Flask-2.0%2B-blue.svg)](https://flask.palletsprojects.com/)
 [![Flask-JWT-Extended](https://img.shields.io/badge/Flask--JWT--Extended-4.5.2-blue)](https://flask-jwt-extended.readthedocs.io/en/stable/)
 [![Flask-SQLAlchemy](https://img.shields.io/badge/Flask--SQLAlchemy-3.1.1-blue)](https://flask-sqlalchemy.palletsprojects.com/en/3.1.x/)
@@ -59,8 +58,7 @@ Check out the live demo of the Real Estate Listings App [here](https://gpt-fitne
 To set up and run the GPT Fitness application, follow these steps:
 
 1. **Clone the Repository:**
-   ```bash
-   git clone <repository_url>
+   git clone <https://github.com/8cott/gpt-fitness-server.git>
    cd gpt-fitness
 
 2. **Create a Virtual Environment (Optional but Recommended):**
