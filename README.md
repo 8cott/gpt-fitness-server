@@ -2,6 +2,10 @@
 [![Python Version](https://img.shields.io/badge/Python-3.9%2B-brightgreen.svg)](https://www.python.org/downloads/)
 [![React Version](https://img.shields.io/badge/React-17.0%2B-blue.svg)](https://reactjs.org/)
 [![Flask Version](https://img.shields.io/badge/Flask-2.0%2B-blue.svg)](https://flask.palletsprojects.com/)
+[![Flask-JWT-Extended](https://img.shields.io/badge/Flask--JWT--Extended-4.5.2-blue)](https://flask-jwt-extended.readthedocs.io/en/stable/)
+[![Flask-SQLAlchemy](https://img.shields.io/badge/Flask--SQLAlchemy-3.1.1-blue)](https://flask-sqlalchemy.palletsprojects.com/en/3.1.x/)
+[![Flask-Bcrypt](https://img.shields.io/badge/Flask--Bcrypt-1.0.1-blue)](https://pypi.org/project/Flask-Bcrypt/)
+[![Gunicorn](https://img.shields.io/badge/Gunicorn-21.2.0-blue)](https://gunicorn.org/)
 
 This is the server-side of the GPT Fitness app. This app allows user from the client side to input their physical stats, workout days per week, and dietary restrictions and submit a request to the gpt-3.5-turbo api from openai, which will send back a custom fitness and diet plan. Users who signup and login have the ability to save their plans and delete them. Whenever a logged in user clicks the submit button, their details are saved so they do not need to keep entering them again.
 Future updates will include the ability to print and email plans.
