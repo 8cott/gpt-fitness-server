@@ -25,12 +25,12 @@ Check out the live demo of the Real Estate Listings App [here](https://gpt-fitne
 ## Technologies Used
 
 - **Backend:**
+  - [OpenAI API](https://beta.openai.com/docs/): Utilized to generate custom diet and fitness plans using GPT-3.5 Turbo.
   - [Flask](https://flask.palletsprojects.com/): A lightweight web framework for building the backend of the application.
   - [Flask-JWT-Extended](https://flask-jwt-extended.readthedocs.io/): Flask extension for JSON Web Tokens (JWT) authentication.
   - [Flask-SQLAlchemy](https://flask-sqlalchemy.palletsprojects.com/): Integration of SQLAlchemy with Flask for database management.
   - [Flask-Bcrypt](https://flask-bcrypt.readthedocs.io/): Flask extension for password hashing.
   - [Flask-Migrate](https://flask-migrate.readthedocs.io/): Flask extension for database migrations.
-  - [OpenAI API](https://beta.openai.com/docs/): Utilized to generate custom diet and fitness plans using GPT-3.5 Turbo.
   
 - **Frontend:**
   - [React](https://reactjs.org/): A JavaScript library for building the user interface.
