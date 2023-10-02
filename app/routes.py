@@ -77,14 +77,15 @@ def generate_plan():
             "4. Diet Plan Summary\n"
             f"Please provide a summary explaining why this diet plan was chosen. It should not be more than a paragraph long.\n"
         )
+        
         print("Generated Prompt:", prompt)
 
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo-16k",
             messages=[{"role": "system", "content": "You are a fitness assistant."},
                       {"role": "user", "content": prompt}],
-            temperature=1,
-            max_tokens=1500
+            temperature=0.7,
+            max_tokens=1000
         )
 
         tokens_used = response['usage']['total_tokens']

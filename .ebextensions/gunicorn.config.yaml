@@ -1,0 +1,24 @@
+option_settings:
+  aws:elasticbeanstalk:container:python:
+    WSGIPath: run.py
+  aws:elasticbeanstalk:environment:process:default:
+    HealthCheckTimeout: 60
+
+files:
+  "/opt/elasticbeanstalk/hooks/appdeploy/post/launch_gunicorn.sh":
+    mode: "000755"
+    owner: root
+    group: root
+    content: |
+      #!/bin/bash
+      gunicorn -k gevent -w 4 -t 60 run:app
+
+  "/etc/nginx/conf.d/proxy.conf":
+    content: |
+      proxy_read_timeout 60s;
+      proxy_connect_timeout 60s;
+      proxy_send_timeout 60s;
+
+container_commands:
+  01_reload_nginx:
+    command: "service nginx reload"
