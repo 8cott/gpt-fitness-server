@@ -8,7 +8,7 @@ from flask_jwt_extended import (create_access_token, get_jwt_identity,
                                 jwt_required)
 
 from .extensions import db
-from .models import SavedPlan, User
+from .models import SavedFitnessPlan, SavedDietPlan, User
 
 
 def error_response(status_code, message):
@@ -37,16 +37,18 @@ def health_check():
     print("Request received at root endpoint")
     return jsonify(status="OK"), 200
 
+# Generate Fitness Plan Route
 
-@main_blueprint.route("/generate_plan", methods=["POST"])
+
+@main_blueprint.route("/generate_fitness_plan", methods=["POST"])
 @cross_origin()
-def generate_plan():
+def generate_fitness_plan():
     try:
         data = request.get_json()
         print("Received Data:", data)
 
-        required_keys = ["user_id", "age", "sex", "weight", "feet",
-                         "inches", "goals", "days_per_week", "dietary_restrictions"]
+        required_keys = ["user_id", "age", "sex", "weight",
+                         "feet", "inches", "goals", "days_per_week"]
         if not all(key in data for key in required_keys):
             return error_response(400, "Missing fields!")
 
@@ -58,26 +60,18 @@ def generate_plan():
         inches = data["inches"]
         goals = data["goals"]
         days_per_week = data["days_per_week"]
-        dietary_restrictions = data["dietary_restrictions"]
 
         # PROMPT for gpt-3.5-turbo
         prompt = (
-            f"I need a fitness plan and diet plan for someone who is {age} year old {sex}, who weighs {weight} lbs, "
+            f"I need a fitness plan for someone who is {age} year old {sex}, who weighs {weight} lbs, "
             f"is {feet} feet {inches} inches tall, and wants to workout {days_per_week} days a week "
             f"with the following goals: '{goals}'. Please do not include an active rest day or any rest day. Please provide:\n\n"
             "1. Workout Routine\n"
             f"Please provide a workout routine for {days_per_week} \n"
             "2. Workout Summary\n"
-            f"Please provide a summary explaining why this workout was chosen. It should not be more than a paragraph long.\n"
-            "3. Three-Day Diet Plan:\n"
-            f"Please provide a diet plan for 3 days. Unless 'None' is chosen, please include foods that are part of the following diet: {dietary_restrictions}\n"
-            "   - Day 1: Breakfast, Lunch, Dinner, Snack\n"
-            "   - Day 2: Breakfast, Lunch, Dinner, Snack\n"
-            "   - Day 3: Breakfast, Lunch, Dinner, Snack\n"
-            "4. Diet Plan Summary\n"
-            f"Please provide a summary explaining why this diet plan was chosen. It should not be more than a paragraph long.\n"
+            "Please provide a summary explaining why this workout was chosen. It should not be more than a paragraph long.\n"
         )
-        
+
         print("Generated Prompt:", prompt)
 
         response = openai.ChatCompletion.create(
@@ -85,7 +79,7 @@ def generate_plan():
             messages=[{"role": "system", "content": "You are a fitness assistant."},
                       {"role": "user", "content": prompt}],
             temperature=0.7,
-            max_tokens=1000
+            max_tokens=600
         )
 
         tokens_used = response['usage']['total_tokens']
@@ -96,8 +90,6 @@ def generate_plan():
         plan_lines = plan.split("\n")
         workout_routine = ""
         workout_summary = ""
-        diet_plan = ""
-        diet_summary = ""
 
         current_section = None
         for line in plan_lines:
@@ -105,26 +97,16 @@ def generate_plan():
                 current_section = "workout_routine"
             elif line.startswith("2. Workout Summary"):
                 current_section = "workout_summary"
-            elif line.startswith("3. Three-Day Diet Plan"):
-                current_section = "diet_plan"
-            elif line.startswith("4. Diet Plan Summary"):
-                current_section = "diet_summary"
             elif current_section:
                 if current_section == "workout_routine":
                     workout_routine += line + "\n"
                 elif current_section == "workout_summary":
                     workout_summary += line + "\n"
-                elif current_section == "diet_plan":
-                    diet_plan += line + "\n"
-                elif current_section == "diet_summary":
-                    diet_summary += line + "\n"
 
         return jsonify({
             "username": user_id,
             "workout_routine": workout_routine.strip(),
-            "workout_summary": workout_summary.strip(),
-            "diet_plan": diet_plan.strip(),
-            "diet_summary": diet_summary.strip()
+            "workout_summary": workout_summary.strip()
         })
 
     # OpenAI Error Handling:
@@ -143,67 +125,93 @@ def generate_plan():
     except Exception as e:
         return error_response(500, str(e))
 
-# Save Plan POST Route
+# Generate Diet Plan Route
 
 
-@main_blueprint.route("/save_plan", methods=["POST"])
-@jwt_required()
+@main_blueprint.route("/generate_diet_plan", methods=["POST"])
 @cross_origin()
-def save_plan():
+def generate_diet_plan():
     try:
         data = request.get_json()
+        print("Received Data:", data)
+
+        required_keys = ["user_id", "age", "sex",
+                         "weight", "dietary_restrictions"]
+        if not all(key in data for key in required_keys):
+            return error_response(400, "Missing fields!")
+
         user_id = data["user_id"]
-        user = User.query.get(user_id)
+        age = data["age"]
+        sex = data["sex"]
+        weight = data["weight"]
+        dietary_restrictions = data["dietary_restrictions"]
 
-        if user is None:
-            return error_response(404, "User not found")
-
-        workout_routine = data["workout_routine"]
-        workout_summary = data["workout_summary"]
-        diet_plan = data["diet_plan"]
-        diet_summary = data["diet_summary"]
-        plan_name = data.get("plan_name")
-
-        new_plan = SavedPlan(
-            user=user,
-            workout_routine=workout_routine,
-            workout_summary=workout_summary,
-            diet_plan=diet_plan,
-            diet_summary=diet_summary,
-            plan_name=plan_name
+        # PROMPT for gpt-3.5-turbo
+        prompt = (
+            f"I need a diet plan for someone who is {age} year old {sex}, who weighs {weight} lbs. "
+            "Please provide:\n\n"
+            "3. Three-Day Diet Plan:\n"
+            f"Please provide a diet plan for 3 days. Unless 'None' is chosen, please include foods that are part of the following diet: {dietary_restrictions}\n"
+            "   - Day 1: Breakfast, Lunch, Dinner, Snack\n"
+            "   - Day 2: Breakfast, Lunch, Dinner, Snack\n"
+            "   - Day 3: Breakfast, Lunch, Dinner, Snack\n"
+            "4. Diet Plan Summary\n"
+            "Please provide a summary explaining why this diet plan was chosen. It should not be more than a paragraph long.\n"
         )
 
-        db.session.add(new_plan)
-        db.session.commit()
+        print("Generated Prompt:", prompt)
 
-        return jsonify({"message": "Plan saved successfully!"}), 201
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "system", "content": "You are a diet assistant."},
+                      {"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=600
+        )
+
+        tokens_used = response['usage']['total_tokens']
+        print(f"Tokens used in this request: {tokens_used}")
+
+        plan = response.choices[0].message["content"]
+
+        plan_lines = plan.split("\n")
+        diet_plan = ""
+        diet_summary = ""
+
+        current_section = None
+        for line in plan_lines:
+            if line.startswith("3. Three-Day Diet Plan"):
+                current_section = "diet_plan"
+            elif line.startswith("4. Diet Plan Summary"):
+                current_section = "diet_summary"
+            elif current_section:
+                if current_section == "diet_plan":
+                    diet_plan += line + "\n"
+                elif current_section == "diet_summary":
+                    diet_summary += line + "\n"
+
+        return jsonify({
+            "username": user_id,
+            "diet_plan": diet_plan.strip(),
+            "diet_summary": diet_summary.strip()
+        })
+
+        # OpenAI Error Handling:
+    except openai.error.RateLimitError:
+        return error_response(429, "Rate limit exceeded, please try again later.")
+
+    except openai.error.AuthenticationError:
+        return error_response(401, "OpenAI authentication failed. Please check your API key.")
+
+    except openai.error.InvalidRequestError as e:
+        return error_response(400, f"Invalid request to OpenAI: {str(e)}")
+
+    except openai.error.OpenAIError as e:
+        return error_response(500, f"OpenAI Error: {str(e)}")
 
     except Exception as e:
         return error_response(500, str(e))
 
-
-# Delete Saved Plan Route
-
-
-@main_blueprint.route("/my_plans/<int:plan_id>", methods=["DELETE"])
-@jwt_required()
-@cross_origin()
-def delete_plan(plan_id):
-    try:
-        authenticated_user_id = int(get_jwt_identity())
-
-        plan = SavedPlan.query.get_or_404(plan_id)
-
-        if plan.user_id != authenticated_user_id:
-            return error_response(403, "Unauthorized action!")
-
-        db.session.delete(plan)
-        db.session.commit()
-
-        return jsonify({"message": "Plan deleted successfully!"})
-
-    except Exception as e:
-        return error_response(500, str(e))
 
 # Validate Password
 
@@ -389,50 +397,213 @@ def login():
         return response
 
 
-# GET ALL PLANS FOR USER
-@main_blueprint.route("/my_plans", methods=["GET"])
+# Save Fitness Plan POST Route
+@main_blueprint.route("/save_fitness_plan", methods=["POST"])
 @jwt_required()
 @cross_origin()
-def get_user_plans():
+def save_fitness_plan():
     try:
-        user_id = get_jwt_identity()
+        data = request.get_json()
+        user_id = data["user_id"]
+        user = User.query.get(user_id)
 
-        plans = SavedPlan.query.filter_by(
-            user_id=user_id).all()
+        if user is None:
+            return error_response(404, "User not found")
 
-        plans_list = [{
-            "id": plan.id,
-            "workout_routine": plan.workout_routine,
-            "workout_summary": plan.workout_summary,
-            "diet_plan": plan.diet_plan,
-            "diet_summary": plan.diet_summary,
-            "plan_name": plan.plan_name,
-            "created_at": plan.created_at.strftime("%Y-%m-%d %H:%M:%S")
-        } for plan in plans]
+        workout_routine = data["workout_routine"]
+        workout_summary = data["workout_summary"]
+        plan_name = data.get("plan_name")
 
-        return jsonify(plans_list)
+        new_fitness_plan = SavedFitnessPlan(
+            user=user,
+            workout_routine=workout_routine,
+            workout_summary=workout_summary,
+            plan_name=plan_name
+        )
+
+        db.session.add(new_fitness_plan)
+        db.session.commit()
+
+        return jsonify({"message": "Fitness plan saved successfully!"}), 201
 
     except Exception as e:
         return error_response(500, str(e))
 
 
-# GET PLAN BY ID FOR USER
-@main_blueprint.route("/my_plans/<int:plan_id>", methods=["GET"])
+# Save Diet Plan POST Route
+@main_blueprint.route("/save_diet_plan", methods=["POST"])
 @jwt_required()
 @cross_origin()
-def get_single_user_plan(plan_id):
+def save_diet_plan():
+    try:
+        data = request.get_json()
+        user_id = data["user_id"]
+        user = User.query.get(user_id)
+
+        if user is None:
+            return error_response(404, "User not found")
+
+        diet_plan = data["diet_plan"]
+        diet_summary = data["diet_summary"]
+        plan_name = data.get("plan_name")
+
+        new_diet_plan = SavedDietPlan(
+            user=user,
+            diet_plan=diet_plan,
+            diet_summary=diet_summary,
+            plan_name=plan_name
+        )
+
+        db.session.add(new_diet_plan)
+        db.session.commit()
+
+        return jsonify({"message": "Diet plan saved successfully!"}), 201
+
+    except Exception as e:
+        return error_response(500, str(e))
+
+
+# Delete Saved Fitness Plan Route
+@main_blueprint.route("/my_fitness_plans/<int:plan_id>", methods=["DELETE"])
+@jwt_required()
+@cross_origin()
+def delete_fitness_plan(plan_id):
+    try:
+        authenticated_user_id = int(get_jwt_identity())
+
+        plan = SavedFitnessPlan.query.get_or_404(
+            plan_id)  # Use SavedFitnessPlan model
+
+        if plan.user_id != authenticated_user_id:
+            return error_response(403, "Unauthorized action!")
+
+        db.session.delete(plan)
+        db.session.commit()
+
+        return jsonify({"message": "Fitness plan deleted successfully!"})
+
+    except Exception as e:
+        return error_response(500, str(e))
+
+# Delete Saved Diet Plan Route
+
+
+@main_blueprint.route("/my_diet_plans/<int:plan_id>", methods=["DELETE"])
+@jwt_required()
+@cross_origin()
+def delete_diet_plan(plan_id):
+    try:
+        authenticated_user_id = int(get_jwt_identity())
+
+        plan = SavedDietPlan.query.get_or_404(
+            plan_id)  # Use SavedDietPlan model
+
+        if plan.user_id != authenticated_user_id:
+            return error_response(403, "Unauthorized action!")
+
+        db.session.delete(plan)
+        db.session.commit()
+
+        return jsonify({"message": "Diet plan deleted successfully!"})
+
+    except Exception as e:
+        return error_response(500, str(e))
+
+
+# GET ALL FITNESS PLANS FOR USER
+@main_blueprint.route("/my_fitness_plans", methods=["GET"])
+@jwt_required()
+@cross_origin()
+def get_user_fitness_plans():
     try:
         user_id = get_jwt_identity()
 
-        plan = SavedPlan.query.filter_by(id=plan_id, user_id=user_id).first()
+        fitness_plans = SavedFitnessPlan.query.filter_by(
+            user_id=user_id).all()
+
+        fitness_plans_list = [{
+            "id": plan.id,
+            "workout_routine": plan.workout_routine,
+            "workout_summary": plan.workout_summary,
+            "plan_name": plan.plan_name,
+            "created_at": plan.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        } for plan in fitness_plans]
+
+        return jsonify(fitness_plans_list)
+
+    except Exception as e:
+        return error_response(500, str(e))
+
+
+# GET ALL DIET PLANS FOR USER
+@main_blueprint.route("/my_diet_plans", methods=["GET"])
+@jwt_required()
+@cross_origin()
+def get_user_diet_plans():
+    try:
+        user_id = get_jwt_identity()
+
+        diet_plans = SavedDietPlan.query.filter_by(
+            user_id=user_id).all()
+
+        diet_plans_list = [{
+            "id": plan.id,
+            "diet_plan": plan.diet_plan,
+            "diet_summary": plan.diet_summary,
+            "plan_name": plan.plan_name,
+            "created_at": plan.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        } for plan in diet_plans]
+
+        return jsonify(diet_plans_list)
+
+    except Exception as e:
+        return error_response(500, str(e))
+
+
+# GET FITNESS PLAN BY ID FOR USER
+@main_blueprint.route("/my_fitness_plans/<int:plan_id>", methods=["GET"])
+@jwt_required()
+@cross_origin()
+def get_single_user_fitness_plan(plan_id):
+    try:
+        user_id = get_jwt_identity()
+
+        plan = SavedFitnessPlan.query.filter_by(
+            id=plan_id, user_id=user_id).first()
 
         if not plan:
-            return error_response(404, "Plan not found or unauthorized.")
+            return error_response(404, "Fitness plan not found or unauthorized.")
 
         plan_details = {
             "id": plan.id,
             "workout_routine": plan.workout_routine,
             "workout_summary": plan.workout_summary,
+            "plan_name": plan.plan_name,
+            "created_at": plan.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        }
+
+        return jsonify(plan_details)
+
+    except Exception as e:
+        return error_response(500, str(e))
+
+
+# GET DIET PLAN BY ID FOR USER
+@main_blueprint.route("/my_diet_plans/<int:plan_id>", methods=["GET"])
+@jwt_required()
+@cross_origin()
+def get_single_user_diet_plan(plan_id):
+    try:
+        user_id = get_jwt_identity()
+
+        plan = SavedDietPlan.query.filter_by(
+            id=plan_id, user_id=user_id).first()
+
+        if not plan:
+            return error_response(404, "Diet plan not found or unauthorized.")
+
+        plan_details = {
+            "id": plan.id,
             "diet_plan": plan.diet_plan,
             "diet_summary": plan.diet_summary,
             "plan_name": plan.plan_name,

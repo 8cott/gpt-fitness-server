@@ -13,7 +13,7 @@ from app import models
 
 def create_app(*args, **kwargs):
     from . import routes
-    from .models import SavedPlan, User  # Local import
+    from .models import SavedFitnessPlan, SavedDietPlan, User  # Local import
     from .routes import main_blueprint
 
     app = Flask(__name__)
@@ -22,6 +22,7 @@ def create_app(*args, **kwargs):
 
     try:
         # Check if the app is running on Heroku
+        print(os.environ)
         if 'DYNO' in os.environ:
             if not os.environ.get("DATABASE_URL"):
                 raise ValueError("Missing DATABASE_URL environment variable")
