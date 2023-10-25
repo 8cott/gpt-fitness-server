@@ -40,7 +40,6 @@ def create_app(*args, **kwargs):
             app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
         else:
             # Local Env
-            print("Running locally - 'DYNO' environment variable not detected")
             load_dotenv(".env")
             config = dotenv_values(".env")
             openai.api_key = config["OPENAI_API_KEY"]
