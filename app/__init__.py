@@ -22,30 +22,21 @@ def create_app(*args, **kwargs):
     CORS(app, resources={r"/*": {"origins": "*"}})
 
     try:
-        # Check if the app is running on Heroku
-        if 'DYNO' in os.environ:
-            print("Running on Heroku - 'DYNO' environment variable detected")
-            if not os.environ.get("DATABASE_URL"):
-                raise ValueError("Missing DATABASE_URL environment variable")
+        # Always use Heroku configurations
+        print("Using Heroku configurations")
 
-            # Heroku
-            openai.api_key = os.environ.get("OPENAI_API_KEY")
+        # Set the API key for OpenAI
+        openai.api_key = os.environ.get("OPENAI_API_KEY")
 
-            database_url = os.environ.get("DATABASE_URL")
-            if database_url.startswith("postgres://"):
-                database_url = database_url.replace(
-                    "postgres://", "postgresql://", 1)
-            app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        # Use the Heroku Postgres database URL
+        database_url = os.environ.get("DATABASE_URL")
+        if database_url.startswith("postgres://"):
+            database_url = database_url.replace(
+                "postgres://", "postgresql://", 1)
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 
-            app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
-        else:
-            # Local Env
-            print("Running locally - 'DYNO' environment variable not detected")
-            load_dotenv(".env")
-            config = dotenv_values(".env")
-            openai.api_key = config["OPENAI_API_KEY"]
-            app.config['SQLALCHEMY_DATABASE_URI'] = config["SQLALCHEMY_DATABASE_URI"]
-            app.config['JWT_SECRET_KEY'] = config['JWT_SECRET_KEY']
+        # Set the JWT secret key
+        app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY')
 
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(weeks=1)
