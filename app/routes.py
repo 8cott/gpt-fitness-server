@@ -45,7 +45,7 @@ def health_check():
 def generate_fitness_plan():
     try:
         data = request.get_json()
-        print("Received Data:", data)
+        print("Received Data for Fitness Plan:", data)
 
         required_keys = ["user_id", "age", "sex", "weight",
                          "feet", "inches", "goals", "days_per_week"]
@@ -133,7 +133,7 @@ def generate_fitness_plan():
 def generate_diet_plan():
     try:
         data = request.get_json()
-        print("Received Data:", data)
+        print("Received Data for Diet Plan:", data)
 
         required_keys = ["user_id", "age", "sex",
                          "weight", "dietary_restrictions"]
@@ -168,7 +168,7 @@ def generate_diet_plan():
             temperature=0.7,
             max_tokens=600
         )
-
+        print("OpenAI Response:", response)
         tokens_used = response['usage']['total_tokens']
         print(f"Tokens used in this request: {tokens_used}")
 
@@ -198,18 +198,23 @@ def generate_diet_plan():
 
         # OpenAI Error Handling:
     except openai.error.RateLimitError:
+        print("OpenAI Rate Limit Error:", str(e))
         return error_response(429, "Rate limit exceeded, please try again later.")
 
     except openai.error.AuthenticationError:
+        print("OpenAI Authentication Failed:", str(e))
         return error_response(401, "OpenAI authentication failed. Please check your API key.")
 
     except openai.error.InvalidRequestError as e:
+        print("OpenAI Invalide Request:", str(e))
         return error_response(400, f"Invalid request to OpenAI: {str(e)}")
 
     except openai.error.OpenAIError as e:
+        print("OpenAI General Error:", str(e))
         return error_response(500, f"OpenAI Error: {str(e)}")
 
     except Exception as e:
+        print("General Error in generate_diet_plan:", str(e))
         return error_response(500, str(e))
 
 
