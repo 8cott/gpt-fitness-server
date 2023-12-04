@@ -12,7 +12,7 @@ Future updates will include the ability to print and email plans.
 The server is built using Python 3, Flask, and Postgresql.
 
 ## Live Demo
-Check out the live demo of the Real Estate Listings App [here](https://gpt-fitness-chi.vercel.app/).
+Check out the live demo of the Real Estate Listings App [here](https://www.gptfitnessapp.com/).
 
 ## Table of Contents
 - [Technologies Used](#technologies-used)
